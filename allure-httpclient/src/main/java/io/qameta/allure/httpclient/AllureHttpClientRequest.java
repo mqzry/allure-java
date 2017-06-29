@@ -18,8 +18,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-import static io.qameta.allure.attachment.http.HttpRequestAttachment.Builder.create;
-
 /**
  * @author charlie (Dmitry Baev).
  */
@@ -43,11 +41,12 @@ public class AllureHttpClientRequest implements HttpRequestInterceptor {
     @Override
     public void process(final HttpRequest request,
                         final HttpContext context) throws HttpException, IOException {
-        final HttpRequestAttachment.Builder builder = create("Request", request.getRequestLine().getUri())
+        final HttpRequestAttachment requestAttachment = new HttpRequestAttachment("Request")
+                .withUrl(request.getRequestLine().getUri())
                 .withMethod(request.getRequestLine().getMethod());
 
         Stream.of(request.getAllHeaders())
-                .forEach(header -> builder.withHeader(header.getName(), header.getValue()));
+                .forEach(header -> requestAttachment.withHeader(header.getName(), header.getValue()));
 
         if (request instanceof HttpEntityEnclosingRequest) {
             final HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
@@ -56,10 +55,8 @@ public class AllureHttpClientRequest implements HttpRequestInterceptor {
             entity.writeTo(os);
 
             final String body = new String(os.toByteArray(), StandardCharsets.UTF_8);
-            builder.withBody(body);
+            requestAttachment.withBody(body);
         }
-
-        final HttpRequestAttachment requestAttachment = builder.build();
         processor.addAttachment(requestAttachment, renderer);
     }
 }

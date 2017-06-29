@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Stream;
 
-import static io.qameta.allure.attachment.http.HttpResponseAttachment.Builder.create;
-
 /**
  * @author charlie (Dmitry Baev).
  */
@@ -42,19 +40,18 @@ public class AllureHttpClientResponse implements HttpResponseInterceptor {
     public void process(final HttpResponse response,
                         final HttpContext context) throws HttpException, IOException {
 
-        final HttpResponseAttachment.Builder builder = create("Response")
+        final HttpResponseAttachment responseAttachment = new HttpResponseAttachment("Response")
                 .withResponseCode(response.getStatusLine().getStatusCode());
 
         Stream.of(response.getAllHeaders())
-                .forEach(header -> builder.withHeader(header.getName(), header.getValue()));
+                .forEach(header -> responseAttachment.withHeader(header.getName(), header.getValue()));
 
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         response.getEntity().writeTo(os);
 
         final String body = new String(os.toByteArray(), StandardCharsets.UTF_8);
-        builder.withBody(body);
+        responseAttachment.withBody(body);
 
-        final HttpResponseAttachment responseAttachment = builder.build();
         processor.addAttachment(responseAttachment, renderer);
     }
 }

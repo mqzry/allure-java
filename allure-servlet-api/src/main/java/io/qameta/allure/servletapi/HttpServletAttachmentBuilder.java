@@ -12,9 +12,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.stream.Stream;
 
-import static io.qameta.allure.attachment.http.HttpRequestAttachment.Builder.create;
-import static io.qameta.allure.attachment.http.HttpResponseAttachment.Builder.create;
-
 /**
  * @author charlie (Dmitry Baev).
  */
@@ -27,25 +24,26 @@ public final class HttpServletAttachmentBuilder {
     }
 
     public static HttpRequestAttachment buildRequest(final HttpServletRequest request) {
-        final HttpRequestAttachment.Builder requestBuilder = create("Request", request.getRequestURI());
+        final HttpRequestAttachment requestAttachment = new HttpRequestAttachment("Request")
+                .withUrl(request.getRequestURI());
         Collections.list(request.getHeaderNames())
                 .forEach(name -> {
                     final String value = request.getHeader(name);
-                    requestBuilder.withHeader(name, value);
+                    requestAttachment.withHeader(name, value);
                 });
 
         Stream.of(request.getCookies())
-                .forEach(cookie -> requestBuilder.withCookie(cookie.getName(), cookie.getValue()));
-        requestBuilder.withBody(getBody(request));
-        return requestBuilder.build();
+                .forEach(cookie -> requestAttachment.withCookie(cookie.getName(), cookie.getValue()));
+        requestAttachment.withBody(getBody(request));
+        return requestAttachment;
     }
 
     public static HttpResponseAttachment buildResponse(final HttpServletResponse response) {
-        final HttpResponseAttachment.Builder responseBuilder = create("Response");
+        final HttpResponseAttachment responseBuilder = new HttpResponseAttachment("Response");
         response.getHeaderNames()
                 .forEach(name -> response.getHeaders(name)
                         .forEach(value -> responseBuilder.withHeader(name, value)));
-        return responseBuilder.build();
+        return responseBuilder;
     }
 
     public static String getBody(final HttpServletRequest request) {

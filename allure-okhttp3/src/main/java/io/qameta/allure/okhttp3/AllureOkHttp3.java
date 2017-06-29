@@ -25,26 +25,25 @@ import java.util.Objects;
  */
 public class AllureOkHttp3 implements Interceptor {
 
-
     @Override
     public Response intercept(final Chain chain) throws IOException {
         final AttachmentProcessor<AttachmentData> processor = new DefaultAttachmentProcessor();
 
         final Request request = chain.request();
         final String requestUrl = request.url().toString();
-        final HttpRequestAttachment.Builder requestAttachmentBuilder = HttpRequestAttachment.Builder
-                .create("Request", requestUrl).withHeaders(toMapConverter(request.headers().toMultimap()));
+        final HttpRequestAttachment requestAttachment = new HttpRequestAttachment("Request").withUrl(requestUrl)
+                .withHeaders(toMapConverter(request.headers().toMultimap()));
 
         final RequestBody requestBody = request.body();
         if (Objects.nonNull(requestBody)) {
-            requestAttachmentBuilder.withBody(readRequestBody(requestBody));
+            requestAttachment.withBody(readRequestBody(requestBody));
         }
-        final HttpRequestAttachment requestAttachment = requestAttachmentBuilder.build();
         processor.addAttachment(requestAttachment, new FreemarkerAttachmentRenderer("http-request.ftl"));
 
         final Response response = chain.proceed(request);
-        final HttpResponseAttachment.Builder responseAttachmentBuilder = HttpResponseAttachment.Builder
-                .create("Response").withHeaders(toMapConverter(response.headers().toMultimap()));
+
+        final HttpResponseAttachment responseAttachment = new HttpResponseAttachment("Response")
+                .withHeaders(toMapConverter(response.headers().toMultimap()));
 
         final Response.Builder responseBuilder = response.newBuilder();
 
@@ -52,13 +51,11 @@ public class AllureOkHttp3 implements Interceptor {
 
         if (Objects.nonNull(responseBody)) {
             final byte[] bytes = responseBody.bytes();
-            responseAttachmentBuilder.withBody(new String(bytes, StandardCharsets.UTF_8));
+            responseAttachment.withBody(new String(bytes, StandardCharsets.UTF_8));
             responseBuilder.body(ResponseBody.create(responseBody.contentType(), bytes));
         }
 
-        final HttpResponseAttachment responseAttachment = responseAttachmentBuilder.build();
         processor.addAttachment(responseAttachment, new FreemarkerAttachmentRenderer("http-response.ftl"));
-
         return responseBuilder.build();
     }
 

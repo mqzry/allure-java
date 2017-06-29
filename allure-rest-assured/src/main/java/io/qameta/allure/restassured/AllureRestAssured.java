@@ -15,9 +15,6 @@ import io.restassured.specification.FilterableResponseSpecification;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.qameta.allure.attachment.http.HttpRequestAttachment.Builder.create;
-import static io.qameta.allure.attachment.http.HttpResponseAttachment.Builder.create;
-
 /**
  * Allure logger filter for Rest-assured.
  */
@@ -29,11 +26,11 @@ public class AllureRestAssured implements OrderedFilter {
                            final FilterContext filterContext) {
         final Prettifier prettifier = new Prettifier();
 
-        final HttpRequestAttachment requestAttachment = create("Request", requestSpec.getURI())
+        final HttpRequestAttachment requestAttachment = new HttpRequestAttachment("Request")
+                .withUrl(requestSpec.getURI())
                 .withBody(prettifier.getPrettifiedBodyIfPossible(requestSpec))
                 .withHeaders(toMapConverter(requestSpec.getHeaders()))
-                .withCookies(toMapConverter(requestSpec.getCookies()))
-                .build();
+                .withCookies(toMapConverter(requestSpec.getCookies()));
 
         new DefaultAttachmentProcessor().addAttachment(
                 requestAttachment,
@@ -41,11 +38,10 @@ public class AllureRestAssured implements OrderedFilter {
         );
 
         final Response response = filterContext.next(requestSpec, responseSpec);
-        final HttpResponseAttachment responseAttachment = create(response.getStatusLine())
+        final HttpResponseAttachment responseAttachment = new HttpResponseAttachment("Response")
                 .withResponseCode(response.getStatusCode())
                 .withHeaders(toMapConverter(response.getHeaders()))
-                .withBody(prettifier.getPrettifiedBodyIfPossible(response, response.getBody()))
-                .build();
+                .withBody(prettifier.getPrettifiedBodyIfPossible(response, response.getBody()));
 
         new DefaultAttachmentProcessor().addAttachment(
                 responseAttachment,

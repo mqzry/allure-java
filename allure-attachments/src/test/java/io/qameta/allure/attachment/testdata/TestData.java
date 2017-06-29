@@ -24,26 +24,21 @@ public final class TestData {
     }
 
     public static HttpRequestAttachment randomHttpRequestAttachment() {
-        return new HttpRequestAttachment(
-                randomString(),
-                randomString(),
-                randomString(),
-                randomString(),
-                randomString(),
-                randomMap(),
-                randomMap()
-        );
+        return new HttpRequestAttachment(randomString())
+                .withMethod(randomString())
+                .withUrl(randomString())
+                .withBody(randomString())
+                .withCookies(randomMap())
+                .withHeaders(randomMap());
     }
 
     public static HttpResponseAttachment randomHttpResponseAttachment() {
-        return new HttpResponseAttachment(
-                randomString(),
-                randomString(),
-                randomString(),
-                ThreadLocalRandom.current().nextInt(),
-                randomMap(),
-                randomMap()
-        );
+        return new HttpResponseAttachment(randomString())
+                .withUrl(randomString())
+                .withBody(randomString())
+                .withCookies(randomMap())
+                .withHeaders(randomMap())
+                .withResponseCode(ThreadLocalRandom.current().nextInt());
     }
 
     public static AttachmentContent randomAttachmentContent() {
