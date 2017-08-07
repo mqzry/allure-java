@@ -30,13 +30,6 @@ public class AllureStorage {
         }
     }
 
-    public Optional<String> getStepForThread(final Thread thread) {
-        final Deque<String> uids = getStepContext(thread);
-        return uids.isEmpty()
-                ? Optional.empty()
-                : Optional.of(uids.getFirst());
-    }
-
     @SuppressWarnings("PMD.NullAssignment")
     public String getRootStep() {
         final Deque<String> uids = getStepContext();
@@ -56,15 +49,6 @@ public class AllureStorage {
         return list;
     }
 
-    private Deque<String> getStepContext(final Thread thread) {
-        Deque<String> list = currentStepContext.get(thread);
-        if (list == null) {
-            list = new LinkedList<>();
-            currentStepContext.put(thread, list);
-        }
-
-        return list;
-    }
 
     private void removeStepContext() {
         final Deque<String> list = getStepContext();
