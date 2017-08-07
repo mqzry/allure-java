@@ -1,7 +1,40 @@
 buildscript {
+    ext {
+        repoUrl = "https://repo.sprd.net/repository/maven-public"
+
+        nexusReleaseUser = System.getenv("NEXUS_RELEASE_USER") ?: findProperty("nexusReleaseUser")
+        if (!nexusReleaseUser) {
+            throw new GradleException('Nexus release user is not set!')
+        }
+        nexusReleasePassword = System.getenv("NEXUS_RELEASE_PW") ?: findProperty("nexusReleasePassword")
+        if (!nexusReleasePassword) {
+            throw new GradleException('Nexus release password is not set!')
+        }
+        nexusSnapshotUser = System.getenv("NEXUS_SNAPSHOT_USER") ?: findProperty("nexusSnapshotUser")
+        if (!nexusSnapshotUser) {
+            throw new GradleException('Nexus snapshot user is not set!')
+        }
+        nexusSnapshotPassword = System.getenv("NEXUS_SNAPSHOT_PW") ?: findProperty("nexusSnapshotPassword")
+        if (!nexusSnapshotPassword) {
+            throw new GradleException('Nexus snapshot password is not set!')
+        }
+
+        repoConfig = {
+            maven {
+                url "$repoUrl"
+                org.gradle.api.credentials.Credentials {
+                    username "$nexusReleaseUser"
+                    password "$nexusReleasePassword"
+                }
+            }
+        }
+    }
+
+
     repositories {
         jcenter()
         mavenLocal()
+        repoConfig
     }
 
     dependencies {
@@ -24,14 +57,16 @@ ext {
     gradleScriptDir = "${rootProject.projectDir}/gradle"
 }
 
-apply from: "${gradleScriptDir}/bintray.gradle"
-apply from: "${gradleScriptDir}/release.gradle"
+//apply from: "${gradleScriptDir}/bintray.gradle"
+//apply from: "${gradleScriptDir}/release.gradle"
+apply plugin: "maven"
+apply plugin: "maven-publish"
 
 configure(rootProject) {
     description = "Allure Java"
 
-    task build() {
-    }
+//    task build() {
+//    }
 
     task wrapper(type: Wrapper) {
         gradleVersion = '4.0.1'
@@ -119,6 +154,7 @@ subprojects { project ->
     repositories {
         jcenter()
         mavenLocal()
+        repoConfig
     }
 
     allure {
@@ -140,4 +176,23 @@ subprojects { project ->
         findbugsVersion = '3.0.1'
         codenarcVersion = '0.26.0'
     }
+
+    publishing {
+        repositories {
+            maven {
+                url "https://repo.sprd.net/repository/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshots' : 'releases'}"
+                credentials {
+                    username "$nexusSnapshotUser"
+                    password "$nexusSnapshotPassword"
+                }
+            }
+        }
+
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+    }
 }
+

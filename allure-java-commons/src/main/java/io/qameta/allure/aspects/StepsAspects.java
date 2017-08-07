@@ -78,7 +78,7 @@ public class StepsAspects {
         return ex.getClassName() + "." + ex.getMethodName();
     }
 
-    private String getFirstQNameInMap(final StackTraceElement[] exs) {
+    private String getFirstQNameInMap(final StackTraceElement... exs) {
         for (StackTraceElement ex : exs) {
             final String qName = getQualifiedName(ex);
             final Thread thread = getLifecycle().getThread(qName);
