@@ -253,9 +253,21 @@ public class AllureLifecycle {
         });
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public void addAttachment(final String name, final String type,
+                              final String fileExtension, final byte[] body, final String qName) {
+        addAttachment(name, type, fileExtension, new ByteArrayInputStream(body), qName);
+    }
+
     public void addAttachment(final String name, final String type,
                               final String fileExtension, final byte[] body) {
         addAttachment(name, type, fileExtension, new ByteArrayInputStream(body));
+    }
+
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public void addAttachment(final String name, final String type,
+                              final String fileExtension, final InputStream stream, final String qName) {
+        writeAttachment(prepareAttachment(name, type, fileExtension, qName), stream);
     }
 
     public void addAttachment(final String name, final String type,
@@ -263,9 +275,21 @@ public class AllureLifecycle {
         writeAttachment(prepareAttachment(name, type, fileExtension), stream);
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    public String prepareAttachment(final String name, final String type, final String fileExtension,
+                                    final String qName) {
+        final Optional<String> currentStep = storage.getCurrentStep();
+        if (!currentStep.isPresent()) {
+            storage.linkContextWith(threadMap.get(qName));
+        }
+
+        return prepareAttachment(name, type, fileExtension);
+    }
+
     @SuppressWarnings({"PMD.NullAssignment", "PMD.UseObjectForClearerAPI"})
     public String prepareAttachment(final String name, final String type, final String fileExtension) {
         final Optional<String> currentStep = storage.getCurrentStep();
+
         currentStep.ifPresent(uuid -> LOGGER.debug("Adding attachment to item with uuid {}", uuid));
         final String extension = Optional.ofNullable(fileExtension)
                 .filter(ext -> !ext.isEmpty())

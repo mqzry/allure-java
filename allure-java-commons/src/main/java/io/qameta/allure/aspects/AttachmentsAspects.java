@@ -76,6 +76,25 @@ public class AttachmentsAspects {
         final String name = attachment.value().isEmpty()
                 ? methodSignature.getName()
                 : processNameTemplate(attachment.value(), getParametersMap(methodSignature, joinPoint.getArgs()));
-        getLifecycle().addAttachment(name, attachment.type(), attachment.fileExtension(), bytes);
+
+        final StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+        final String qualifiedName = getFirstQNameInMap(stacktrace);
+        getLifecycle().addAttachment(name, attachment.type(), attachment.fileExtension(), bytes, qualifiedName);
+    }
+
+    private String getQualifiedName(final StackTraceElement ex) {
+        return ex.getClassName() + "." + ex.getMethodName();
+    }
+
+    private String getFirstQNameInMap(final StackTraceElement... exs) {
+        for (StackTraceElement ex : exs) {
+            final String qName = getQualifiedName(ex);
+            final Thread thread = getLifecycle().getThread(qName);
+            if (thread != null) {
+                return qName;
+            }
+        }
+
+        return null;
     }
 }
